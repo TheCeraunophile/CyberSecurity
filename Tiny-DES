@@ -1,0 +1,37 @@
+def split_key(key):
+    left_half = (key & 0xF0) >> 4
+    right_half = key & 0x0F
+    return left_half, right_half
+
+def rotate_key(key):
+    return ((key << 1) & 0x0F) | ((key >> 3) & 0x01)
+
+def generate_subkeys(key):
+    left_half, right_half = split_key(key)
+    subkey1 = (rotate_key(left_half) << 4) | rotate_key(right_half)
+    subkey2 = (rotate_key(rotate_key(left_half)) << 4) | rotate_key(rotate_key(right_half))
+    return subkey1, subkey2
+
+def s_box(input, subkey):
+    return (input ^ subkey) ^ 0x05
+
+def encrypt(plaintext, key):
+    subkey1, subkey2 = generate_subkeys(key)
+    plaintext = s_box(plaintext, subkey1)
+    ciphertext = s_box(plaintext, subkey2)
+    return ciphertext
+
+def decrypt(ciphertext, key):
+    subkey1, subkey2 = generate_subkeys(key)
+    plaintext = s_box(ciphertext, subkey2)
+    plaintext = s_box(plaintext, subkey1)
+    return plaintext
+
+key = 0b10101010
+plaintext = 0b11001100
+
+print("Plain text:", bin(plaintext))
+ciphertext = encrypt(plaintext, key)
+print("Encrypted:", bin(ciphertext))
+decrypted = decrypt(ciphertext, key)
+print("Decrypted:", bin(decrypted))
